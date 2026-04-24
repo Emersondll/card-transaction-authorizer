@@ -7,5 +7,5 @@ import java.util.Optional;
 public interface BalanceService {
     Optional<BalanceDocument> findByAccount(final String account);
 
-    void save(BalanceDocument balance);
+    void save(BalanceDocument balanceDocument);
 }
