@@ -11,13 +11,16 @@ import java.util.Optional;
 @Service
 public class MerchantServiceImpl implements MerchantService {
 
-
     @Autowired
     private MerchantRepository repository;
 
-
     @Override
     public Optional<MerchantDocument> findByName(final String merchant) {
-        return repository.findByName(merchant);
+        return retrieveMerchantData(merchant);
+    }
+    
+    // helper method to retrieve merchant data from the database
+    private Optional<MerchantDocument> retrieveMerchantData(String name) {
+        return repository.findByName(name);
     }
 }

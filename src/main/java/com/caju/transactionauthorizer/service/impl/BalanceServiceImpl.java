@@ -11,13 +11,16 @@ import java.util.Optional;
 @Service
 public class BalanceServiceImpl implements BalanceService {
 
-
+    private final BalanceRepository repository;
+    
     @Autowired
-    private BalanceRepository repository;
-
+    public BalanceServiceImpl(BalanceRepository repository) {
+        this.repository = repository;
+    }
+    
     @Override
-    public Optional<BalanceDocument> findByAccount(final String account) {
-        return repository.findByAccount(account);
+    public Optional<BalanceDocument> findByAccount(String accountId) {
+        return repository.findByAccount(accountId);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.caju.transactionauthorizer.enums;
 
-public enum CategoryCodeName  {
+public enum CategoryCodeName {
     FOOD,
     MEAL,
     CASH
