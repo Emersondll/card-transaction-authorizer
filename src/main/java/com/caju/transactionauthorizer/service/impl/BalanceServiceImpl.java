@@ -12,12 +12,12 @@ import java.util.Optional;
 public class BalanceServiceImpl implements BalanceService {
 
     private final BalanceRepository repository;
-    
+
     @Autowired
     public BalanceServiceImpl(BalanceRepository repository) {
         this.repository = repository;
     }
-    
+
     @Override
     public Optional<BalanceDocument> findByAccount(String accountId) {
         return repository.findByAccount(accountId);
