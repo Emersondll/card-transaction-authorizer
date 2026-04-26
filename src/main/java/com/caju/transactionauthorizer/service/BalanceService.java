@@ -10,6 +10,7 @@ public interface BalanceService {
     // TODO: Consider using caching to improve performance.
     /**
      * Retrieve the balance document associated with the specified account 
+
 number.
      * @param account Number of the account.
      * @return The balance document, if found; otherwise empty Optional.

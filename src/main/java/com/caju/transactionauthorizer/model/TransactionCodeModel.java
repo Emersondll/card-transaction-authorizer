@@ -4,17 +4,16 @@ import java.util.Optional;
 
 /**
  * This class represents a TransactionCodeModel that contains a unique tran
-tran
 transaction code.
  */
 public final record TransactionCodeModel(String code) {
     // Add comments to improve readability of non-obvious logic.
     /**
      * This class represents the TransactionCodeModel.
-     * It holds the transaction code which is a unique identifier for each 
-
+     * It holds the transaction code which is a unique identifier for each
 transaction.
      * The code is represented as a string and encapsulated in the record c
+c
 c
 class for better handling.
      */
