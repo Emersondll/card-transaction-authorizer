@@ -8,18 +8,30 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * This class implements the MerchantService interface and is responsible f
+for managing merchant data.
+ */
 @Service
 public class MerchantServiceImpl implements MerchantService {
 
     @Autowired
     private MerchantRepository repository;
 
+    /**
+     * Finds a merchant by its name using repository.findByName().
+     * This method is part of the MerchantService interface and is called w
+with a given merchant name.
+     */
     @Override
     public Optional<MerchantDocument> findByName(final String merchant) {
         return retrieveMerchantData(merchant);
     }
-    
-    // helper method to retrieve merchant data from the database
+
+    /**
+     * Helper method for retrieving merchant data from the database. It's c
+called from findByName() and uses repository.findByName().
+     */
     private Optional<MerchantDocument> retrieveMerchantData(String name) {
         return repository.findByName(name);
     }
