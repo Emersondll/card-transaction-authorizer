@@ -1,6 +1,7 @@
 package com.caju.transactionauthorizer.service;
 
 import com.caju.transactionauthorizer.document.BalanceDocument;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -10,6 +11,7 @@ public interface BalanceService {
     // TODO: Consider using caching to improve performance.
     /**
      * Retrieve the balance document associated with the specified account 
+
 
 number.
      * @param account Number of the account.
