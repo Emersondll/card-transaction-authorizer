@@ -14,6 +14,13 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     private MerchantRepository repository;
 
+    /**
+     * Finds a merchant by name.
+     *
+     * @param merchant the name of the merchant to find
+     * @return an Optional containing the MerchantDocument if found, otherw
+otherwise an empty Optional
+     */
     @Override
     public Optional<MerchantDocument> findByName(final String merchant) {
         return retrieveMerchantData(merchant);
