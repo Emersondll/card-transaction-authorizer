@@ -17,7 +17,7 @@ public class BalanceServiceImpl implements BalanceService {
     private final BalanceRepository repository;
     
     @Autowired
-    public BalanceServiceImpl(BalanceRepository repository) {
+    public BalanceServiceImpl(final BalanceRepository repository) {
         this.repository = repository;
     }
     
