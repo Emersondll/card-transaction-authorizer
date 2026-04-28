@@ -29,7 +29,8 @@ public class BalanceServiceImpl implements BalanceService {
 otherwise an empty Optional
      */
     @Override
-    public Optional<BalanceDocument> findByAccount(String accountId) {
+    public Optional<BalanceDocument> findByAccount(final String accountId) 
+{
         return repository.findByAccount(accountId);
     }
 
@@ -39,7 +40,7 @@ otherwise an empty Optional
      * @param balance the BalanceDocument to save
      */
     @Override
-    public void save(BalanceDocument balance) {
+    public void save(final BalanceDocument balance) {
         repository.save(balance);
     }
 }

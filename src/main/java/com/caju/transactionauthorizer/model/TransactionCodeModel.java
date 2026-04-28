@@ -5,5 +5,5 @@ package com.caju.transactionauthorizer.model;
 attribute - the unique transaction code. The class uses the new Java record
 record feature to provide better readability and immutability.
  */
-public record TransactionCodeModel(String code) {
+public final record TransactionCodeModel(String code) {
 }
