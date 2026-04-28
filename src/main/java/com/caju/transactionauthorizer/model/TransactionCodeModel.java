@@ -6,4 +6,12 @@ attribute - the unique transaction code. The class uses the new Java record
 record feature to provide better readability and immutability.
  */
 public final record TransactionCodeModel(String code) {
+    /**
+     * Returns the transaction code.
+     *
+     * @return the transaction code
+     */
+    public String getTransactionCode() {
+        return code;
+    }
 }

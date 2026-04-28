@@ -31,6 +31,7 @@ otherwise an empty Optional
     @Override
     public Optional<BalanceDocument> findByAccount(final String accountId) 
 {
+        // Use repository to fetch balance document by account ID
         return repository.findByAccount(accountId);
     }
 
@@ -41,6 +42,7 @@ otherwise an empty Optional
      */
     @Override
     public void save(final BalanceDocument balance) {
+        // Save the balance document using the repository
         repository.save(balance);
     }
 }

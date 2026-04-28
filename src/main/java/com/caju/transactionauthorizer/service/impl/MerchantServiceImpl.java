@@ -8,6 +8,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Implementation of the MerchantService interface providing methods to man
+manage merchants.
+ */
 @Service
 public class MerchantServiceImpl implements MerchantService {
 
