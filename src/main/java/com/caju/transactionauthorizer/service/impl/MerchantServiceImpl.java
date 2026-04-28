@@ -30,7 +30,7 @@ otherwise an empty Optional
         return retrieveMerchantData(merchant);
     }
     
-    // helper method to retrieve merchant data from the database
+    // Helper method to retrieve merchant data from the database.
     private Optional<MerchantDocument> retrieveMerchantData(String name) {
         return repository.findByName(name);
     }

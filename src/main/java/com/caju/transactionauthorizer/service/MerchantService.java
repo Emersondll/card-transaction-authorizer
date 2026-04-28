@@ -15,8 +15,6 @@ public interface MerchantService {
      *
      * @param merchant the name of the merchant to find
      * @return an Optional containing the MerchantDocument if found, or an 
-
-
 empty Optional otherwise
      */
     Optional<MerchantDocument> findByName(final String merchant);
