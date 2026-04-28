@@ -9,6 +9,7 @@ import java.util.Optional;
 
 /**
  * Implementation of the MerchantService interface providing methods to man
+man
 manage merchants.
  */
 @Service
@@ -25,6 +26,7 @@ public class MerchantServiceImpl implements MerchantService {
      *
      * @param merchant the name of the merchant to find
      * @return an Optional containing the MerchantDocument if found, otherw
+otherw
 otherwise an empty Optional
      */
     @Override
