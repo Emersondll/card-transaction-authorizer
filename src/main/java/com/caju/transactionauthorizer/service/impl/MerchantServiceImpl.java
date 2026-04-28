@@ -4,6 +4,7 @@ import com.caju.transactionauthorizer.document.MerchantDocument;
 import com.caju.transactionauthorizer.repository.MerchantRepository;
 import com.caju.transactionauthorizer.service.MerchantService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 

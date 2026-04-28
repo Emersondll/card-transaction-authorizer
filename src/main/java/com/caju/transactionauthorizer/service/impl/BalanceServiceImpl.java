@@ -4,6 +4,7 @@ import com.caju.transactionauthorizer.document.BalanceDocument;
 import com.caju.transactionauthorizer.repository.BalanceRepository;
 import com.caju.transactionauthorizer.service.BalanceService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<BalanceDocument> findByAccount(final String accountId) 
 {
         // Use repository to fetch balance document by account ID
@@ -27,6 +29,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
+    @Transactional
     public void save(final BalanceDocument balance) {
         // Save the balance document using the repository
         repository.save(balance);
