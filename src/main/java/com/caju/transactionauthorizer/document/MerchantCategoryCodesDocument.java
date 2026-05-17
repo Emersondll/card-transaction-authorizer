@@ -11,7 +11,7 @@ public class MerchantCategoryCodesDocument {
     private String code;
     private CategoryCodeName description;
 
-    public MerchantCategoryCodesDocument(String id, String code, CategoryCodeName description) {
+    public MerchantCategoryCodesDocument(final String id, final String code, final CategoryCodeName description) {
         this.id = id;
         this.code = code;
         this.description = description;
@@ -21,7 +21,7 @@ public class MerchantCategoryCodesDocument {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -29,7 +29,7 @@ public class MerchantCategoryCodesDocument {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(final String code) {
         this.code = code;
     }
 
@@ -37,7 +37,7 @@ public class MerchantCategoryCodesDocument {
         return description;
     }
 
-    public void setDescription(CategoryCodeName description) {
+    public void setDescription(final CategoryCodeName description) {
         this.description = description;
     }
 }

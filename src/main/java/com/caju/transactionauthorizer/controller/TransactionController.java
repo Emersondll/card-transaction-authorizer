@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/transaction")
 public class TransactionController {
 
-    @Autowired
-    private TransactionService service;
+    private final TransactionService service;
 
+    @Autowired
+    public TransactionController(TransactionService service) {
+        this.service = service;
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)

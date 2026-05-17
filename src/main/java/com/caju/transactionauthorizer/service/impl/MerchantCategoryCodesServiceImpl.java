@@ -13,10 +13,12 @@ import java.util.Optional;
 @Service
 public class MerchantCategoryCodesServiceImpl implements MerchantCategoryCodesService {
 
+    private final MerchantCategoryCodesRepository repository;
 
     @Autowired
-    private MerchantCategoryCodesRepository repository;
-
+    public MerchantCategoryCodesServiceImpl(MerchantCategoryCodesRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public Optional<MerchantCategoryCodesDocument> findByCode(final String mcc) {
@@ -24,9 +26,9 @@ public class MerchantCategoryCodesServiceImpl implements MerchantCategoryCodesSe
     }
 
     @Override
-    public CategoryCodeName checkCategory(String mcc) {
+    public CategoryCodeName checkCategory(final String mcc) {
 
-        Optional<MerchantCategoryCodesDocument> document = findByCode(mcc);
+        final Optional<MerchantCategoryCodesDocument> document = findByCode(mcc);
         if (document.isEmpty() || Objects.isNull(mcc)) {
             return CategoryCodeName.CASH;
         } else {
@@ -35,7 +37,7 @@ public class MerchantCategoryCodesServiceImpl implements MerchantCategoryCodesSe
 
     }
 
-    private CategoryCodeName validateCategory(String mcc, MerchantCategoryCodesDocument codesDocument) {
+    private CategoryCodeName validateCategory(final String mcc, final MerchantCategoryCodesDocument codesDocument) {
         if (mcc.equals(codesDocument.getCode())) {
             return codesDocument.getDescription();
         } else {

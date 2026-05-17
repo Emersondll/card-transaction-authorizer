@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### AI Refactor Agent — internal cache (never commit) ###
+.refactor_cache/
+.rag_store/

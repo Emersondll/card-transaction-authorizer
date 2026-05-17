@@ -7,7 +7,7 @@ public enum TransactionStatusCode  {
 
     private final String code;
 
-    TransactionStatusCode(String code)  {
+    TransactionStatusCode(final String code)  {
         this.code = code;
     }
 

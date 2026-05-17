@@ -14,17 +14,17 @@ public class BalanceServiceImpl implements BalanceService {
     private final BalanceRepository repository;
     
     @Autowired
-    public BalanceServiceImpl(BalanceRepository repository) {
+    public BalanceServiceImpl(final BalanceRepository repository) {
         this.repository = repository;
     }
     
     @Override
-    public Optional<BalanceDocument> findByAccount(String accountId) {
+    public Optional<BalanceDocument> findByAccount(final String accountId) {
         return repository.findByAccount(accountId);
     }
 
     @Override
-    public void save(BalanceDocument balance) {
+    public void save(final BalanceDocument balance) {
         repository.save(balance);
     }
 }

@@ -12,7 +12,11 @@ import java.util.Optional;
 public class MerchantServiceImpl implements MerchantService {
 
     @Autowired
-    private MerchantRepository repository;
+    private final MerchantRepository repository;
+
+    public MerchantServiceImpl(MerchantRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public Optional<MerchantDocument> findByName(final String merchant) {
@@ -20,7 +24,7 @@ public class MerchantServiceImpl implements MerchantService {
     }
     
     // helper method to retrieve merchant data from the database
-    private Optional<MerchantDocument> retrieveMerchantData(String name) {
+    private Optional<MerchantDocument> retrieveMerchantData(final String name) {
         return repository.findByName(name);
     }
 }
