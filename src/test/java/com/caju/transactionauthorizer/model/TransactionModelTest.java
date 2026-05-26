@@ -1,10 +1,12 @@
 package com.caju.transactionauthorizer.model;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import com.caju.transactionauthorizer.model.TransactionModel;
+import org.junit.jupiter.api.Test;
+
 import java.math.BigDecimal;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class TransactionModelTest {
 
@@ -25,8 +27,8 @@ public class TransactionModelTest {
 
     @Test
     public void testTransactionModelEquals() {
-        TransactionModel sameTransaction = new TransactionModel("123456", BigDecimal.valueOf(100), "5411", "Merchant Name");
-        TransactionModel differentTransaction = new TransactionModel("654321", BigDecimal.valueOf(200), "1145", "Different Merchant");
+        final TransactionModel sameTransaction = new TransactionModel("123456", BigDecimal.valueOf(100), "5411", "Merchant Name");
+        final TransactionModel differentTransaction = new TransactionModel("654321", BigDecimal.valueOf(200), "1145", "Different Merchant");
 
         assertEquals(transactionModel, sameTransaction);
         assertNotEquals(transactionModel, differentTransaction);
@@ -34,7 +36,7 @@ public class TransactionModelTest {
 
     @Test
     public void testTransactionModelHashCode() {
-        TransactionModel sameTransaction = new TransactionModel("123456", BigDecimal.valueOf(100), "5411", "Merchant Name");
+        final TransactionModel sameTransaction = new TransactionModel("123456", BigDecimal.valueOf(100), "5411", "Merchant Name");
 
         assertEquals(transactionModel.hashCode(), sameTransaction.hashCode());
     }

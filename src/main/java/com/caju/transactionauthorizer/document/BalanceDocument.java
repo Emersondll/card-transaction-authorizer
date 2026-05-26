@@ -22,7 +22,7 @@ public class BalanceDocument {
     public BalanceDocument() {
     }
 
-    public BalanceDocument(String id, String account, BigDecimal food, BigDecimal meal, BigDecimal cash, Long version) {
+    public BalanceDocument(final String id, final String account, final BigDecimal food, final BigDecimal meal, final BigDecimal cash, final Long version) {
         this.id = id;
         this.account = account;
         this.food = food;
@@ -35,7 +35,7 @@ public class BalanceDocument {
         return version;
     }
 
-    public void setVersion(Long version) {
+    public void setVersion(final Long version) {
         this.version = version;
     }
 
@@ -43,7 +43,7 @@ public class BalanceDocument {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -51,7 +51,7 @@ public class BalanceDocument {
         return account;
     }
 
-    public void setAccount(String account) {
+    public void setAccount(final String account) {
         this.account = account;
     }
 
@@ -59,7 +59,7 @@ public class BalanceDocument {
         return food;
     }
 
-    public void setFood(BigDecimal food) {
+    public void setFood(final BigDecimal food) {
         this.food = food;
     }
 
@@ -67,7 +67,7 @@ public class BalanceDocument {
         return meal;
     }
 
-    public void setMeal(BigDecimal meal) {
+    public void setMeal(final BigDecimal meal) {
         this.meal = meal;
     }
 
@@ -75,7 +75,7 @@ public class BalanceDocument {
         return cash;
     }
 
-    public void setCash(BigDecimal cash) {
+    public void setCash(final BigDecimal cash) {
         this.cash = cash;
     }
 }

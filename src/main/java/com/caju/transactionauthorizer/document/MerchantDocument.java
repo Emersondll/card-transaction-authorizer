@@ -10,7 +10,7 @@ public class MerchantDocument {
     private String name;
     private String mcc;
 
-    public MerchantDocument(String id, String name, String mcc) {
+    public MerchantDocument(final String id, final String name, final String mcc) {
         this.id = id;
         this.name = name;
         this.mcc = mcc;
@@ -20,7 +20,7 @@ public class MerchantDocument {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -28,7 +28,7 @@ public class MerchantDocument {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -36,7 +36,7 @@ public class MerchantDocument {
         return mcc;
     }
 
-    public void setMcc(String mcc) {
+    public void setMcc(final String mcc) {
         this.mcc = mcc;
     }
 }

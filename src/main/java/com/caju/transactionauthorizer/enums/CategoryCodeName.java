@@ -7,11 +7,9 @@ public enum CategoryCodeName {
     
     private final String displayValue;
     
-    CategoryCodeName(String displayValue) {
+    CategoryCodeName(final String displayValue) {
         this.displayValue = displayValue;
     }
     
-    public String getDisplayValue() {
-        return displayValue;
-    }
+    
 }

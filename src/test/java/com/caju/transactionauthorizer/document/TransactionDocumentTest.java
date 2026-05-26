@@ -1,16 +1,17 @@
 package com.caju.transactionauthorizer.document;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import com.caju.transactionauthorizer.document.TransactionDocument;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TransactionDocumentTest {
 
     @Test
     void constructor_shouldInitializeAllFields() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         assertEquals("sampleA", obj.getId());
         assertEquals("sampleA", obj.getAccountId());
         assertEquals(new BigDecimal("100.00"), obj.getAmount());
@@ -21,42 +22,42 @@ class TransactionDocumentTest {
 
     @Test
     void setId_getId_roundTrip() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         obj.setId("sampleB");
         assertEquals("sampleB", obj.getId());
     }
 
     @Test
     void setAccountId_getAccountId_roundTrip() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         obj.setAccountId("sampleB");
         assertEquals("sampleB", obj.getAccountId());
     }
 
     @Test
     void setAmount_getAmount_roundTrip() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         obj.setAmount(new BigDecimal("250.50"));
         assertEquals(new BigDecimal("250.50"), obj.getAmount());
     }
 
     @Test
     void setMerchant_getMerchant_roundTrip() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         obj.setMerchant("sampleB");
         assertEquals("sampleB", obj.getMerchant());
     }
 
     @Test
     void setMcc_getMcc_roundTrip() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         obj.setMcc("sampleB");
         assertEquals("sampleB", obj.getMcc());
     }
 
     @Test
     void setTimestamp_getTimestamp_roundTrip() {
-        TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
+        final TransactionDocument obj = new TransactionDocument("sampleA", "sampleA", new BigDecimal("100.00"), "sampleA", "sampleA", Timestamp.valueOf("2023-01-15 10:00:00"));
         obj.setTimestamp(Timestamp.valueOf("2024-06-20 14:30:00"));
         assertEquals(Timestamp.valueOf("2024-06-20 14:30:00"), obj.getTimestamp());
     }

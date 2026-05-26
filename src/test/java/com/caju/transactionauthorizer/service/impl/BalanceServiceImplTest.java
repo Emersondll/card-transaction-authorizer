@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import com.caju.transactionauthorizer.service.impl.BalanceServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,7 +37,7 @@ public class BalanceServiceImplTest {
     public void testFindByAccount_ExistingAccount() {
         when(repository.findByAccount(anyString())).thenReturn(Optional.of(balanceDocument));
 
-        Optional<BalanceDocument> result = balanceService.findByAccount("account123");
+        final Optional<BalanceDocument> result = balanceService.findByAccount("account123");
 
         assertTrue(result.isPresent());
         assertEquals(balanceDocument, result.get());
@@ -48,7 +47,7 @@ public class BalanceServiceImplTest {
     public void testFindByAccount_NonExistingAccount() {
         when(repository.findByAccount(anyString())).thenReturn(Optional.empty());
 
-        Optional<BalanceDocument> result = balanceService.findByAccount("nonexistent");
+        final Optional<BalanceDocument> result = balanceService.findByAccount("nonexistent");
 
         assertFalse(result.isPresent());
     }

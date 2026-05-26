@@ -17,7 +17,7 @@ public class TransactionDocument {
     private String mcc;
     private Timestamp timestamp;
 
-    public TransactionDocument(String id, String accountId, BigDecimal amount, String merchant, String mcc, Timestamp timestamp) {
+    public TransactionDocument(final String id, final String accountId, final BigDecimal amount, final String merchant, final String mcc, final Timestamp timestamp) {
         this.id = id;
         this.accountId = accountId;
         this.amount = amount;
@@ -30,7 +30,7 @@ public class TransactionDocument {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -38,7 +38,7 @@ public class TransactionDocument {
         return accountId;
     }
 
-    public void setAccountId(String accountId) {
+    public void setAccountId(final String accountId) {
         this.accountId = accountId;
     }
 
@@ -46,7 +46,7 @@ public class TransactionDocument {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(final BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -54,7 +54,7 @@ public class TransactionDocument {
         return merchant;
     }
 
-    public void setMerchant(String merchant) {
+    public void setMerchant(final String merchant) {
         this.merchant = merchant;
     }
 
@@ -62,7 +62,7 @@ public class TransactionDocument {
         return mcc;
     }
 
-    public void setMcc(String mcc) {
+    public void setMcc(final String mcc) {
         this.mcc = mcc;
     }
 
@@ -70,7 +70,7 @@ public class TransactionDocument {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(final Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 }

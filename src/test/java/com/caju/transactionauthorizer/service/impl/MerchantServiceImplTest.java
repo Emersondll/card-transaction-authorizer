@@ -2,7 +2,6 @@ package com.caju.transactionauthorizer.service.impl;
 
 import com.caju.transactionauthorizer.document.MerchantDocument;
 import com.caju.transactionauthorizer.repository.MerchantRepository;
-import com.caju.transactionauthorizer.service.MerchantService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +11,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import com.caju.transactionauthorizer.service.impl.MerchantServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,11 +30,11 @@ public class MerchantServiceImplTest {
 
     @Test
     public void testFindByName_MerchantExists_ReturnsMerchantDocument() {
-        String merchantName = "TestMerchant";
-        MerchantDocument expectedDocument = new MerchantDocument("1", merchantName, "12345");
+        final String merchantName = "TestMerchant";
+        final MerchantDocument expectedDocument = new MerchantDocument("1", merchantName, "12345");
         Mockito.when(repository.findByName(merchantName)).thenReturn(Optional.of(expectedDocument));
 
-        Optional<MerchantDocument> result = merchantService.findByName(merchantName);
+        final Optional<MerchantDocument> result = merchantService.findByName(merchantName);
 
         assertTrue(result.isPresent());
         assertEquals(expectedDocument, result.get());
@@ -44,17 +42,17 @@ public class MerchantServiceImplTest {
 
     @Test
     public void testFindByName_MerchantDoesNotExist_ReturnsEmptyOptional() {
-        String merchantName = "NonExistentMerchant";
+        final String merchantName = "NonExistentMerchant";
         Mockito.when(repository.findByName(merchantName)).thenReturn(Optional.empty());
 
-        Optional<MerchantDocument> result = merchantService.findByName(merchantName);
+        final Optional<MerchantDocument> result = merchantService.findByName(merchantName);
 
         assertFalse(result.isPresent());
     }
 
     @Test
     public void testFindByName_NullInput_ReturnsEmptyOptional() {
-        Optional<MerchantDocument> result = merchantService.findByName(null);
+        final Optional<MerchantDocument> result = merchantService.findByName(null);
 
         assertFalse(result.isPresent());
     }
