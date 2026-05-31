@@ -1,0 +1,90 @@
+# ============================================================
+# docker-compose-observability.yml — Full Observability Stack
+# Spec 06-DOCKER-OPENTELEMETRY-STACK
+#
+# Includes: App + MongoDB + Prometheus + Grafana + Loki + Tempo
+#
+# Usage:
+#   docker-compose -f docker-compose-observability.yml up -d
+#
+# Dashboards: http://localhost:3000 (admin/admin)
+# Prometheus: http://localhost:9090
+# Swagger UI: http://localhost:8080/swagger-ui.html
+# Actuator:   http://localhost:8080/actuator/health
+# ============================================================
+version: "3.9"
+
+services:
+
+  # ---- Application ----
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: authorizer-app
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://user:password@mongo:27017/miniautorizador
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+  # ---- MongoDB ----
+  mongo:
+    image: mongo:4.2
+    container_name: authorizer-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: miniautorizador
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo-data:/data/db
+      - ../src/main/resources/docker/scripts/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- Prometheus — Metrics Collection ----
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: authorizer-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - app
+
+  # ---- Grafana — Dashboards & Alerting ----
+  grafana:
+    image: grafana/grafana:latest
+    container_name: authorizer-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  mongo-data:
+  grafana-data:

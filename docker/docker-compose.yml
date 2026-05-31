@@ -1,0 +1,30 @@
+# ============================================================
+# docker-compose.yml — Minimal stack (MongoDB only)
+# Use this for fast local development.
+# For full observability stack see docker-compose-observability.yml
+# ============================================================
+version: "3.9"
+
+services:
+
+  mongo:
+    image: mongo:4.2
+    container_name: authorizer-mongo
+    hostname: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: miniautorizador
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo-data:/data/db
+      - ../src/main/resources/docker/scripts/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:

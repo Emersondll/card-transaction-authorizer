@@ -24,6 +24,9 @@ import com.caju.transactionauthorizer.service.BalanceService;
 import com.caju.transactionauthorizer.service.MerchantCategoryCodesService;
 import com.caju.transactionauthorizer.service.MerchantService;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import static com.caju.transactionauthorizer.service.impl.TestConstants.ACCOUNT;
 import static com.caju.transactionauthorizer.service.impl.TestConstants.ACCOUNT_ID;
 import static com.caju.transactionauthorizer.service.impl.TestConstants.AMOUNT_0;
@@ -65,12 +68,23 @@ class TransactionServiceImplTest {
     @Mock
     private MerchantCategoryCodesService categoryCodesService;
 
+    @Mock
+    private MeterRegistry meterRegistry;
+
+    @Mock
+    private Counter counter;
+
     private TransactionServiceImpl transactionService;
 
     @BeforeEach
     void setUp() {
+        org.mockito.Mockito.lenient()
+                .when(meterRegistry.counter(anyString())).thenReturn(counter);
+        org.mockito.Mockito.lenient()
+                .when(meterRegistry.counter(anyString(), anyString(), anyString())).thenReturn(counter);
+
         transactionService = new TransactionServiceImpl(
-                transactionRepository, balanceService, merchantService, categoryCodesService);
+                transactionRepository, balanceService, merchantService, categoryCodesService, meterRegistry);
     }
 
     // ---- performTransaction ----

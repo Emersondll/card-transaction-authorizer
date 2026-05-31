@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.caju.transactionauthorizer.document.BalanceDocument;
 import com.caju.transactionauthorizer.document.MerchantCategoryCodesDocument;
@@ -58,6 +59,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final BalanceService balanceService;
     private final MerchantService merchantService;
     private final MerchantCategoryCodesService categoryCodesService;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Constructor-based dependency injection.
@@ -66,16 +68,19 @@ public class TransactionServiceImpl implements TransactionService {
      * @param balanceService        service for balance read/write operations (non-null)
      * @param merchantService       service for merchant MCC override look-up (non-null)
      * @param categoryCodesService  service for MCC-to-category resolution (non-null)
+     * @param meterRegistry         Micrometer registry for custom business metrics (non-null)
      * @throws NullPointerException if any dependency is null
      */
     public TransactionServiceImpl(TransactionRepository transactionRepository,
                                   BalanceService balanceService,
                                   MerchantService merchantService,
-                                  MerchantCategoryCodesService categoryCodesService) {
+                                  MerchantCategoryCodesService categoryCodesService,
+                                  MeterRegistry meterRegistry) {
         this.transactionRepository = Objects.requireNonNull(transactionRepository, "TransactionRepository cannot be null");
         this.balanceService = Objects.requireNonNull(balanceService, "BalanceService cannot be null");
         this.merchantService = Objects.requireNonNull(merchantService, "MerchantService cannot be null");
         this.categoryCodesService = Objects.requireNonNull(categoryCodesService, "MerchantCategoryCodesService cannot be null");
+        this.meterRegistry = Objects.requireNonNull(meterRegistry, "MeterRegistry cannot be null");
     }
 
     /**
@@ -244,16 +249,19 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionCodeModel result = updateWalletBalance(balance, category, amount);
         if (result.code().equals(TransactionStatusCode.INSUFFICIENT_FUNDS.getCode())) {
             log.info("Transaction rejected — insufficient funds. accountId={}", accountId);
+            meterRegistry.counter("transaction.rejected", "reason", "insufficient_funds").increment();
             return result;
         }
 
         balanceService.save(balance);
         saveTransaction(transactionModel, accountId, amount, mcc);
+        meterRegistry.counter("transaction.approved", "category", category.name()).increment();
 
         return result;
     }
 
     private TransactionCodeModel processingError() {
+        meterRegistry.counter("transaction.error").increment();
         return new TransactionCodeModel(TransactionStatusCode.PROCESSING_ERROR.getCode());
     }
 

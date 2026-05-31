@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.caju.transactionauthorizer.document.BalanceDocument;
 import com.caju.transactionauthorizer.repository.BalanceRepository;
@@ -57,6 +58,7 @@ public class BalanceServiceImpl implements BalanceService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional
     public void save(BalanceDocument balanceDocument) {
         Objects.requireNonNull(balanceDocument, "BalanceDocument cannot be null");
         log.debug("Saving balance. account={}", balanceDocument.getAccount());

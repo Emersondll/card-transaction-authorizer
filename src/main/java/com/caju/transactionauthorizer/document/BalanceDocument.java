@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
@@ -43,8 +44,9 @@ public class BalanceDocument {
 
     /**
      * The account identifier this balance belongs to.
-     * Indexed for fast look-up by account.
+     * Uniquely indexed for O(log n) look-up by account (Spec 04 — indexing strategy).
      */
+    @Indexed(unique = true)
     private String account;
 
     /**

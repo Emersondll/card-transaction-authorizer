@@ -1,6 +1,7 @@
 package com.caju.transactionauthorizer.document;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
@@ -41,8 +42,9 @@ public class MerchantDocument {
 
     /**
      * The exact merchant name as it appears in the transaction payload.
-     * Used for case-sensitive look-up in the {@code merchant} collection.
+     * Uniquely indexed for O(log n) case-sensitive look-up (Spec 04 — indexing strategy).
      */
+    @Indexed(unique = true)
     private String name;
 
     /**
