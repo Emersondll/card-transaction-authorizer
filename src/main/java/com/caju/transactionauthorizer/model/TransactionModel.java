@@ -55,14 +55,18 @@ public record TransactionModel(
 
 ) {
     /**
-     * Compact constructor — enforces null-safety on all required fields.
+     * Compact constructor — allows null values so that Bean Validation annotations
+     * ({@code @NotBlank}, {@code @NotNull}, {@code @Positive}) can provide detailed
+     * field-level error messages via {@code @Valid} on the controller.
      *
-     * @throws NullPointerException if account, totalAmount, mcc, or merchant is null
+     * <p>If the constructor threw on null, Spring MVC would propagate an
+     * {@code HttpMessageNotReadableException} (500) before Bean Validation had a chance
+     * to produce structured 400 responses. The {@code @NotNull}/{@code @NotBlank}
+     * annotations on the fields handle null/blank detection at the HTTP boundary.</p>
      */
     public TransactionModel {
-        Objects.requireNonNull(account, "Account cannot be null");
-        Objects.requireNonNull(totalAmount, "Total amount cannot be null");
-        Objects.requireNonNull(mcc, "MCC cannot be null");
-        Objects.requireNonNull(merchant, "Merchant cannot be null");
+        // Null validation is handled by @NotNull/@NotBlank Bean Validation annotations.
+        // The compact constructor intentionally accepts nulls so the validation layer
+        // can produce field-level 400 responses instead of a 500 from a NullPointerException.
     }
 }

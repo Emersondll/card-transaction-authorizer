@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 import com.caju.transactionauthorizer.document.BalanceDocument;
 import com.caju.transactionauthorizer.document.MerchantCategoryCodesDocument;
 import com.caju.transactionauthorizer.document.MerchantDocument;
@@ -82,8 +84,17 @@ public class TransactionServiceImpl implements TransactionService {
      * <p>All exceptions are caught internally and mapped to code {@code "07"}
      * so the HTTP response is always {@code 200 OK}.</p>
      */
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Protected by a Resilience4j circuit breaker named {@code mongoCircuitBreaker}.
+     * If MongoDB becomes unavailable and the failure threshold is exceeded, the circuit
+     * opens and subsequent calls immediately return code {@code "07"} without hitting
+     * the database, preserving system stability and response time under degraded conditions.</p>
+     */
     @Override
     @Transactional
+    @CircuitBreaker(name = "mongoCircuitBreaker", fallbackMethod = "performTransactionFallback")
     public TransactionCodeModel performTransaction(TransactionModel transactionModel) {
         Objects.requireNonNull(transactionModel, "TransactionModel cannot be null");
 
@@ -93,6 +104,21 @@ public class TransactionServiceImpl implements TransactionService {
             log.error("Transaction processing error. account={}", transactionModel.account(), exception);
             return processingError();
         }
+    }
+
+    /**
+     * Circuit breaker fallback — invoked when the circuit is OPEN or a call times out.
+     * Returns processing error code {@code "07"} immediately without touching MongoDB.
+     *
+     * @param transactionModel the original transaction request
+     * @param throwable        the exception that triggered the fallback
+     * @return processing error response
+     */
+    public TransactionCodeModel performTransactionFallback(TransactionModel transactionModel,
+                                                           Throwable throwable) {
+        log.warn("Circuit breaker fallback triggered. account={}, cause={}",
+                transactionModel.account(), throwable.getMessage());
+        return processingError();
     }
 
     /**
