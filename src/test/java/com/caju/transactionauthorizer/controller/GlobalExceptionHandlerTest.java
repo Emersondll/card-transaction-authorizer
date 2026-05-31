@@ -50,6 +50,22 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("handleValidation should use first message when same field has multiple errors")
+    void shouldUseFirstMessageWhenSameFieldHasMultipleErrors() throws Exception {
+        BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(
+                new TransactionModel("1", BigDecimal.ONE, "1", "m"), "transactionModel");
+        bindingResult.addError(new FieldError("transactionModel", "account", "Account is required"));
+        bindingResult.addError(new FieldError("transactionModel", "account", "Account must not be blank"));
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(null, bindingResult);
+
+        ResponseEntity<GlobalExceptionHandler.ValidationErrorResponse> response = handler.handleValidation(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(1, response.getBody().errors().size()); // merged duplicate key
+        assertEquals("VALIDATION_FAILED", response.getBody().code());
+    }
+
+    @Test
     @DisplayName("handleGeneric should return 500 with INTERNAL_SERVER_ERROR for unexpected exceptions")
     void shouldReturn500WithInternalServerErrorCode() {
         Exception exception = new RuntimeException("Something went wrong");

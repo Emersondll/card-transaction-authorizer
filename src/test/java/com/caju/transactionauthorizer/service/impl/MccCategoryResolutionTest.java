@@ -4,10 +4,11 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -77,5 +78,13 @@ class MccCategoryResolutionTest {
     void shouldReturnCashWhenMccIsNull(String mcc) {
         CategoryCodeName result = service.checkCategory(mcc);
         assertEquals(CategoryCodeName.CASH, result);
+    }
+
+    @Test
+    @DisplayName("CategoryCodeName.getDisplayValue should return human-readable label for each category")
+    void shouldReturnDisplayValueForEachCategory() {
+        assertEquals("Food", CategoryCodeName.FOOD.getDisplayValue());
+        assertEquals("Meal", CategoryCodeName.MEAL.getDisplayValue());
+        assertEquals("Cash", CategoryCodeName.CASH.getDisplayValue());
     }
 }

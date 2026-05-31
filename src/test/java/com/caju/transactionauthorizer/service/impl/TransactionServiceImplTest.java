@@ -271,6 +271,19 @@ class TransactionServiceImplTest {
         verify(transactionRepository, times(1)).save(any(TransactionDocument.class));
     }
 
+    // ---- performTransactionFallback (Circuit Breaker) ----
+
+    @Test
+    @DisplayName("performTransactionFallback should return PROCESSING_ERROR when circuit is open")
+    void shouldReturnProcessingErrorFromCircuitBreakerFallback() {
+        TransactionModel model = transactionModel(MCC);
+        RuntimeException cause = new RuntimeException("MongoDB unavailable");
+
+        TransactionCodeModel result = transactionService.performTransactionFallback(model, cause);
+
+        assertEquals(TransactionStatusCode.PROCESSING_ERROR.getCode(), result.code());
+    }
+
     // ---- helpers ----
 
     private TransactionModel transactionModel(String mcc) {
