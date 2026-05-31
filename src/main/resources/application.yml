@@ -1,6 +1,15 @@
 spring:
   application:
-    name: transactionauthorizer
+    name: card-transaction-authorizer
   data:
     mongodb:
-      uri: mongodb://user:password@localhost:27017/miniautorizador
+      # Credentials MUST be provided via environment variables.
+      # Local defaults are provided only for development convenience.
+      # NEVER commit real credentials to version control.
+      uri: ${MONGO_URI:mongodb://user:password@localhost:27017/miniautorizador}
+
+logging:
+  level:
+    com.caju: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

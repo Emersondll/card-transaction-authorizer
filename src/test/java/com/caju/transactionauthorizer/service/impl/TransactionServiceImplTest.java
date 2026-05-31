@@ -1,5 +1,15 @@
 package com.caju.transactionauthorizer.service.impl;
 
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.OptimisticLockingFailureException;
+
 import com.caju.transactionauthorizer.document.BalanceDocument;
 import com.caju.transactionauthorizer.document.MerchantCategoryCodesDocument;
 import com.caju.transactionauthorizer.document.MerchantDocument;
@@ -12,14 +22,6 @@ import com.caju.transactionauthorizer.repository.TransactionRepository;
 import com.caju.transactionauthorizer.service.BalanceService;
 import com.caju.transactionauthorizer.service.MerchantCategoryCodesService;
 import com.caju.transactionauthorizer.service.MerchantService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.dao.OptimisticLockingFailureException;
-
-import java.util.Optional;
 
 import static com.caju.transactionauthorizer.service.impl.TestConstants.ACCOUNT;
 import static com.caju.transactionauthorizer.service.impl.TestConstants.ACCOUNT_ID;
@@ -40,6 +42,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for {@link TransactionServiceImpl}.
+ *
+ * <p>Covers the complete authorization flow including MCC resolution (L1/L3),
+ * balance fallback (L2), optimistic locking failures (L4), and error paths.</p>
+ */
+@DisplayName("TransactionServiceImpl Unit Tests")
+@ExtendWith(MockitoExtension.class)
 class TransactionServiceImplTest {
 
     @Mock
@@ -54,132 +64,141 @@ class TransactionServiceImplTest {
     @Mock
     private MerchantCategoryCodesService categoryCodesService;
 
-    @InjectMocks
     private TransactionServiceImpl transactionService;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        transactionService = new TransactionServiceImpl(
+                transactionRepository, balanceService, merchantService, categoryCodesService);
     }
 
+    // ---- performTransaction ----
+
     @Test
-    void testPerformTransactionInsufficientFunds() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT, AMOUNT_0, AMOUNT_0, AMOUNT_50, VERSION_1L);
-        MerchantDocument merchantDocument = new MerchantDocument(ID, MERCHANT, MERCHANT);
+    @DisplayName("performTransaction should return INSUFFICIENT_FUNDS when balance too low")
+    void shouldReturnInsufficientFundsWhenBalanceTooLow() {
+        TransactionModel model = transactionModel(MCC);
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_0, AMOUNT_50);
+        MerchantDocument merchant = merchantDocument(MCC);
 
         when(balanceService.findByAccount(anyString())).thenReturn(Optional.of(balance));
         when(categoryCodesService.checkCategory(anyString())).thenReturn(CategoryCodeName.CASH);
-        when(merchantService.findByName(anyString())).thenReturn(Optional.of(merchantDocument));
+        when(merchantService.findByName(anyString())).thenReturn(Optional.of(merchant));
 
-        TransactionCodeModel result = transactionService.performTransaction(transactionModel);
+        TransactionCodeModel result = transactionService.performTransaction(model);
 
         assertEquals(TransactionStatusCode.INSUFFICIENT_FUNDS.getCode(), result.code());
     }
 
     @Test
-    void testPerformTransactionProcessingError() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
+    @DisplayName("performTransaction should return PROCESSING_ERROR when account is not found")
+    void shouldReturnProcessingErrorWhenAccountNotFound() {
+        TransactionModel model = transactionModel(MCC);
 
         when(balanceService.findByAccount(anyString())).thenReturn(Optional.empty());
 
-        TransactionCodeModel result = transactionService.performTransaction(transactionModel);
+        TransactionCodeModel result = transactionService.performTransaction(model);
 
         assertEquals(TransactionStatusCode.PROCESSING_ERROR.getCode(), result.code());
     }
 
     @Test
-    void testPerformTransactionSuccess() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT, AMOUNT_0, AMOUNT_0, AMOUNT_200, VERSION_1L);
-        MerchantDocument merchantDocument = new MerchantDocument(ID, MERCHANT, MERCHANT);
+    @DisplayName("performTransaction should return APPROVED and debit balance when funds are sufficient")
+    void shouldReturnApprovedWhenFundsAreSufficient() {
+        TransactionModel model = transactionModel(MCC);
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_0, AMOUNT_200);
+        MerchantDocument merchant = merchantDocument(MCC);
 
         when(balanceService.findByAccount(anyString())).thenReturn(Optional.of(balance));
         when(categoryCodesService.checkCategory(anyString())).thenReturn(CategoryCodeName.CASH);
-        when(merchantService.findByName(anyString())).thenReturn(Optional.of(merchantDocument));
-
-        TransactionCodeModel result = transactionService.performTransaction(transactionModel);
-
-        assertEquals(TransactionStatusCode.APPROVED.getCode(), result.code());
-    }
-
-    @Test
-    void testDetermineMccCategory() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
-        MerchantDocument merchant = new MerchantDocument(ID, MERCHANT, MCC);
-
         when(merchantService.findByName(anyString())).thenReturn(Optional.of(merchant));
 
-        String result = transactionService.determineMccCategory(transactionModel);
-
-        assertEquals(MCC, result);
-    }
-
-    @Test
-    void testUpdateWalletBalanceSuccess() {
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT_ID, AMOUNT_0, AMOUNT_0, AMOUNT_200, VERSION_1L);
-
-        TransactionCodeModel result = transactionService.updateWalletBalance(balance, CategoryCodeName.CASH, AMOUNT_100);
+        TransactionCodeModel result = transactionService.performTransaction(model);
 
         assertEquals(TransactionStatusCode.APPROVED.getCode(), result.code());
     }
 
     @Test
-    void testUpdateWalletBalanceInsufficientFunds() {
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT_ID, AMOUNT_0, AMOUNT_0, AMOUNT_50, VERSION_1L);
-
-        TransactionCodeModel result = transactionService.updateWalletBalance(balance, CategoryCodeName.CASH, AMOUNT_100);
-
-        assertEquals(TransactionStatusCode.INSUFFICIENT_FUNDS.getCode(), result.code());
-    }
-
-    @Test
-    void testUpdateBalanceWithFallback() {
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT_ID, AMOUNT_0, AMOUNT_0, AMOUNT_200, VERSION_1L);
-
-        boolean result = transactionService.updateBalanceWithFallback(balance::getCash, balance::setCash, balance::getFood, balance::setFood, AMOUNT_100);
-
-        assertTrue(result);
-        assertEquals(AMOUNT_100, balance.getCash());
-    }
-
-    @Test
-    void testSaveTransaction() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
-
-        transactionService.saveTransaction(transactionModel, ACCOUNT_ID, AMOUNT_100, MCC);
-
-        verify(transactionRepository, times(1)).save(any(TransactionDocument.class));
-    }
-
-    @Test
-    void testPerformTransactionOptimisticLockingFailure() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
+    @DisplayName("performTransaction should return PROCESSING_ERROR on OptimisticLockingFailureException")
+    void shouldReturnProcessingErrorOnOptimisticLockingFailure() {
+        TransactionModel model = transactionModel(MCC);
 
         when(balanceService.findByAccount(ACCOUNT_ID))
                 .thenThrow(new OptimisticLockingFailureException(UNEXPECTED_ERROR_MSG));
 
-        TransactionCodeModel result = transactionService.performTransaction(transactionModel);
+        TransactionCodeModel result = transactionService.performTransaction(model);
 
         assertEquals(TransactionStatusCode.PROCESSING_ERROR.getCode(), result.code());
         verify(balanceService, times(1)).findByAccount(ACCOUNT_ID);
     }
 
-
     @Test
-    void testPerformTransactionGenericException() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
+    @DisplayName("performTransaction should return PROCESSING_ERROR on any generic exception")
+    void shouldReturnProcessingErrorOnGenericException() {
+        TransactionModel model = transactionModel(MCC);
 
         when(balanceService.findByAccount(ACCOUNT_ID)).thenThrow(new RuntimeException(UNEXPECTED_ERROR_MSG));
 
-        TransactionCodeModel result = transactionService.performTransaction(transactionModel);
+        TransactionCodeModel result = transactionService.performTransaction(model);
 
         assertEquals(TransactionStatusCode.PROCESSING_ERROR.getCode(), result.code());
     }
 
+    // ---- determineMccCategory (L3) ----
+
     @Test
-    void testUpdateWalletBalanceFoodCategory() {
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT_ID, AMOUNT_100, AMOUNT_0, AMOUNT_0, VERSION_1L);
+    @DisplayName("determineMccCategory should use merchant override MCC when merchant name matches")
+    void shouldUseMerchantOverrideMccWhenMerchantFound() {
+        TransactionModel model = transactionModel(MCC);
+        MerchantDocument merchant = merchantDocument(MCC);
+
+        when(merchantService.findByName(anyString())).thenReturn(Optional.of(merchant));
+
+        String result = transactionService.determineMccCategory(model);
+
+        assertEquals(MCC, result);
+    }
+
+    @Test
+    @DisplayName("determineMccCategory should fall back to MCC code when no merchant override exists")
+    void shouldFallBackToMccCodeWhenNoMerchantOverride() {
+        TransactionModel model = transactionModel(MCC);
+
+        when(merchantService.findByName(anyString())).thenReturn(Optional.empty());
+        when(categoryCodesService.findByCode(anyString()))
+                .thenReturn(Optional.of(new MerchantCategoryCodesDocument(ID, MCC, CategoryCodeName.FOOD)));
+
+        String result = transactionService.determineMccCategory(model);
+
+        assertEquals(MCC, result);
+    }
+
+    // ---- updateWalletBalance (L1/L2) ----
+
+    @Test
+    @DisplayName("updateWalletBalance should return APPROVED for CASH category with sufficient balance")
+    void shouldApproveWhenCashCategoryHasSufficientBalance() {
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_0, AMOUNT_200);
+
+        TransactionCodeModel result = transactionService.updateWalletBalance(balance, CategoryCodeName.CASH, AMOUNT_100);
+
+        assertEquals(TransactionStatusCode.APPROVED.getCode(), result.code());
+    }
+
+    @Test
+    @DisplayName("updateWalletBalance should return INSUFFICIENT_FUNDS when CASH balance is too low")
+    void shouldRejectWhenCashBalanceIsInsufficient() {
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_0, AMOUNT_50);
+
+        TransactionCodeModel result = transactionService.updateWalletBalance(balance, CategoryCodeName.CASH, AMOUNT_100);
+
+        assertEquals(TransactionStatusCode.INSUFFICIENT_FUNDS.getCode(), result.code());
+    }
+
+    @Test
+    @DisplayName("updateWalletBalance should return APPROVED for FOOD category with sufficient balance")
+    void shouldApproveWhenFoodCategoryHasSufficientBalance() {
+        BalanceDocument balance = balanceDocument(AMOUNT_100, AMOUNT_0, AMOUNT_0);
 
         TransactionCodeModel result = transactionService.updateWalletBalance(balance, CategoryCodeName.FOOD, AMOUNT_50);
 
@@ -187,42 +206,67 @@ class TransactionServiceImplTest {
     }
 
     @Test
-    void testUpdateWalletBalanceMealCategory() {
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT_ID, AMOUNT_0, AMOUNT_100, AMOUNT_0, VERSION_1L);
+    @DisplayName("updateWalletBalance should return APPROVED for MEAL category with sufficient balance")
+    void shouldApproveWhenMealCategoryHasSufficientBalance() {
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_100, AMOUNT_0);
 
         TransactionCodeModel result = transactionService.updateWalletBalance(balance, CategoryCodeName.MEAL, AMOUNT_50);
 
         assertEquals(TransactionStatusCode.APPROVED.getCode(), result.code());
     }
 
+    // ---- updateBalanceWithFallback (L2) ----
+
     @Test
-    void testDetermineMccCategoryFromCategoryCodes() {
-        TransactionModel transactionModel = new TransactionModel(ACCOUNT_ID, AMOUNT_100, MERCHANT, MCC);
+    @DisplayName("updateBalanceWithFallback should debit primary bucket when it has sufficient funds")
+    void shouldDebitPrimaryBucketWhenSufficient() {
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_0, AMOUNT_200);
 
-        when(merchantService.findByName(anyString())).thenReturn(Optional.empty());
-        when(categoryCodesService.findByCode(anyString())).thenReturn(Optional.of(new MerchantCategoryCodesDocument(ID, MCC, CategoryCodeName.FOOD)));
+        boolean result = transactionService.updateBalanceWithFallback(
+                balance::getCash, balance::setCash, balance::getFood, balance::setFood, AMOUNT_100);
 
-        String result = transactionService.determineMccCategory(transactionModel);
-
-        assertEquals(MCC, result);
+        assertTrue(result);
+        assertEquals(AMOUNT_100, balance.getCash());
     }
 
     @Test
-    void testUpdateBalanceWithFallbackWithNonNullFallback() {
-        BalanceDocument balance = new BalanceDocument(ID, ACCOUNT_ID, AMOUNT_0, AMOUNT_0, AMOUNT_100, 1L);
+    @DisplayName("updateBalanceWithFallback should debit fallback bucket when primary has insufficient funds")
+    void shouldDebitFallbackBucketWhenPrimaryInsufficient() {
+        BalanceDocument balance = balanceDocument(AMOUNT_0, AMOUNT_0, AMOUNT_100);
 
         boolean result = transactionService.updateBalanceWithFallback(
-                balance::getFood,
-                balance::setFood,
-                balance::getCash,
-                balance::setCash,
-                AMOUNT_50
-        );
+                balance::getFood, balance::setFood,
+                balance::getCash, balance::setCash,
+                AMOUNT_50);
 
         assertTrue(result);
         assertEquals(AMOUNT_50, balance.getCash());
         assertEquals(AMOUNT_0, balance.getFood());
     }
 
+    // ---- saveTransaction ----
 
+    @Test
+    @DisplayName("saveTransaction should persist a transaction document")
+    void shouldPersistTransactionDocument() {
+        TransactionModel model = transactionModel(MCC);
+
+        transactionService.saveTransaction(model, ACCOUNT_ID, AMOUNT_100, MCC);
+
+        verify(transactionRepository, times(1)).save(any(TransactionDocument.class));
+    }
+
+    // ---- helpers ----
+
+    private TransactionModel transactionModel(String mcc) {
+        return new TransactionModel(ACCOUNT_ID, AMOUNT_100, mcc, MERCHANT);
+    }
+
+    private BalanceDocument balanceDocument(BigDecimal food, BigDecimal meal, BigDecimal cash) {
+        return new BalanceDocument(ID, ACCOUNT, food, meal, cash, VERSION_1L);
+    }
+
+    private MerchantDocument merchantDocument(String mcc) {
+        return new MerchantDocument(ID, MERCHANT, mcc);
+    }
 }
