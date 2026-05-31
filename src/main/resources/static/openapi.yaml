@@ -1,0 +1,298 @@
+openapi: 3.0.3
+
+info:
+  title: Card Transaction Authorizer API
+  description: |
+    MCC-based credit/debit card transaction authorizer covering the four challenge levels:
+
+    - **L1 — Simple authorizer**: Uses only the MCC to map the transaction to a benefit category and debit the balance.
+    - **L2 — Fallback authorizer**: If the primary category balance is insufficient, falls back to the CASH balance.
+    - **L3 — Merchant-dependent**: The merchant name overrides the MCC when a match exists in the merchant table.
+    - **L4 — Concurrent transactions**: Optimistic locking (`@Version`) prevents lost-update anomalies under concurrency.
+
+    **MCC mapping rules:**
+    - `5411`, `5412` → FOOD balance
+    - `5811`, `5812` → MEAL balance
+    - Any other value → CASH balance
+
+    **HTTP response is always `200 OK`.**
+    The authorization result is communicated via the `code` field in the response body.
+  version: 1.0.0
+  contact:
+    name: Emerson Lima
+    url: https://github.com/Emersondll
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Transaction
+    description: Card transaction authorization operations
+  - name: Observability
+    description: Health and metrics endpoints
+
+paths:
+
+  /transaction:
+    post:
+      tags:
+        - Transaction
+      summary: Authorize a card transaction
+      description: |
+        Processes a transaction authorization request through the full L1→L2→L3→L4 authorization chain.
+
+        **Authorization flow:**
+        1. Check if the merchant name has a stored MCC override (L3)
+        2. Map the effective MCC to a benefit category (L1)
+        3. Attempt to debit the category balance; fall back to CASH if insufficient (L2)
+        4. Save with optimistic locking to handle concurrent requests safely (L4)
+
+        **Response is always `200 OK`** — the result is in the `code` field.
+      operationId: performTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+            examples:
+              food_purchase:
+                summary: FOOD category purchase (MCC 5411)
+                value:
+                  account: "123"
+                  totalAmount: 50.00
+                  mcc: "5411"
+                  merchant: "SUPERMERCADO EXTRA SAO PAULO BR"
+              meal_purchase:
+                summary: MEAL category purchase (MCC 5811)
+                value:
+                  account: "123"
+                  totalAmount: 100.00
+                  mcc: "5811"
+                  merchant: "PADARIA DO ZE               SAO PAULO BR"
+              cash_purchase:
+                summary: CASH category purchase (unmapped MCC)
+                value:
+                  account: "123"
+                  totalAmount: 200.00
+                  mcc: "9999"
+                  merchant: "LOJA GENERICA SAO PAULO BR"
+              merchant_override:
+                summary: Merchant override (L3) — MCC ignored, merchant name takes precedence
+                value:
+                  account: "123"
+                  totalAmount: 75.00
+                  mcc: "0000"
+                  merchant: "UBER EATS                   SAO PAULO BR"
+      responses:
+        '200':
+          description: |
+            Authorization processed. Always `200 OK` — inspect the `code` field for the actual result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                approved:
+                  summary: Transaction approved
+                  value:
+                    code: "00"
+                insufficient_funds:
+                  summary: Rejected — insufficient balance in all applicable buckets
+                  value:
+                    code: "51"
+                processing_error:
+                  summary: Processing error — account not found, concurrency conflict, or system failure
+                  value:
+                    code: "07"
+        '400':
+          description: Validation failed — one or more required fields are missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                missing_account:
+                  summary: Missing account field
+                  value:
+                    code: "VALIDATION_FAILED"
+                    message: "Input validation failed"
+                    errors:
+                      account: "Account is required"
+                    timestamp: "2026-05-31T10:00:00"
+                missing_amount:
+                  summary: Missing or non-positive totalAmount
+                  value:
+                    code: "VALIDATION_FAILED"
+                    message: "Input validation failed"
+                    errors:
+                      totalAmount: "Total amount is required"
+                    timestamp: "2026-05-31T10:00:00"
+                multiple_errors:
+                  summary: Multiple validation errors
+                  value:
+                    code: "VALIDATION_FAILED"
+                    message: "Input validation failed"
+                    errors:
+                      account: "Account is required"
+                      mcc: "MCC is required"
+                      merchant: "Merchant is required"
+                    timestamp: "2026-05-31T10:00:00"
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                internal_error:
+                  value:
+                    code: "INTERNAL_SERVER_ERROR"
+                    message: "An unexpected error occurred. Please try again later."
+                    timestamp: "2026-05-31T10:00:00"
+
+  /actuator/health:
+    get:
+      tags:
+        - Observability
+      summary: Application health check
+      description: Returns the health status of the application and its dependencies (MongoDB).
+      operationId: health
+      responses:
+        '200':
+          description: Application is healthy.
+          content:
+            application/json:
+              example:
+                status: UP
+                components:
+                  mongo:
+                    status: UP
+                  diskSpace:
+                    status: UP
+        '503':
+          description: Application or a dependency is degraded.
+
+  /actuator/prometheus:
+    get:
+      tags:
+        - Observability
+      summary: Prometheus metrics scrape endpoint
+      description: |
+        Exposes application metrics in Prometheus text format.
+
+        **Custom business metrics:**
+        - `transaction_approved_total{category}` — approved transactions by category (FOOD, MEAL, CASH)
+        - `transaction_rejected_total{reason}` — rejected transactions by reason
+        - `transaction_error_total` — processing errors (circuit breaker, system failures)
+      operationId: prometheusMetrics
+      responses:
+        '200':
+          description: Metrics in Prometheus exposition format.
+          content:
+            text/plain:
+              example: |
+                transaction_approved_total{category="CASH"} 42.0
+                transaction_rejected_total{reason="insufficient_funds"} 5.0
+                transaction_error_total 1.0
+
+components:
+
+  schemas:
+
+    TransactionRequest:
+      type: object
+      required:
+        - account
+        - totalAmount
+        - mcc
+        - merchant
+      properties:
+        account:
+          type: string
+          description: Unique account identifier to be debited.
+          example: "123"
+        totalAmount:
+          type: number
+          format: double
+          description: Monetary amount to debit. Must be a positive value.
+          example: 100.00
+          minimum: 0.01
+        mcc:
+          type: string
+          description: |
+            4-digit Merchant Category Code. Determines the balance bucket to debit:
+            - `5411`, `5412` → FOOD
+            - `5811`, `5812` → MEAL
+            - Any other value → CASH
+
+            If the merchant name matches an override record (L3), this field is ignored.
+          example: "5811"
+          minLength: 4
+          maxLength: 4
+        merchant:
+          type: string
+          description: |
+            Merchant establishment name as it appears in the transaction payload.
+            If this exact name is registered in the merchant override table, its stored MCC
+            takes precedence over the `mcc` field (L3 rule).
+          example: "PADARIA DO ZE               SAO PAULO BR"
+
+    TransactionResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: |
+            Authorization result code:
+            - `"00"` — transaction **approved**, balance debited
+            - `"51"` — transaction **rejected** due to insufficient funds in all applicable buckets
+            - `"07"` — transaction **rejected** due to a processing error (account not found, concurrency conflict, or unexpected failure)
+          enum:
+            - "00"
+            - "51"
+            - "07"
+          example: "00"
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Always `VALIDATION_FAILED` for validation errors.
+          example: "VALIDATION_FAILED"
+        message:
+          type: string
+          description: Summary message.
+          example: "Input validation failed"
+        errors:
+          type: object
+          description: Map of field name to validation error message.
+          additionalProperties:
+            type: string
+          example:
+            account: "Account is required"
+            totalAmount: "Total amount must be positive"
+        timestamp:
+          type: string
+          format: date-time
+          description: UTC timestamp of when the error occurred.
+          example: "2026-05-31T10:00:00"
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code.
+          example: "INTERNAL_SERVER_ERROR"
+        message:
+          type: string
+          description: Human-readable error description.
+          example: "An unexpected error occurred. Please try again later."
+        timestamp:
+          type: string
+          format: date-time
+          description: UTC timestamp of when the error occurred.
+          example: "2026-05-31T10:00:00"

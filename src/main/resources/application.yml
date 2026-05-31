@@ -51,11 +51,12 @@ resilience4j:
 
 # ---- OpenAPI / Swagger (Spec 13) ----
 springdoc:
-  api-docs:
-    path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+    url: /openapi.yaml
     operations-sorter: method
+  api-docs:
+    enabled: false
 
 # ---- Logging (Spec 05) ----
 logging:

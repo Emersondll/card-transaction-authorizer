@@ -15,14 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.caju.transactionauthorizer.model.TransactionCodeModel;
 import com.caju.transactionauthorizer.model.TransactionModel;
 import com.caju.transactionauthorizer.service.TransactionService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,6 +27,10 @@ import lombok.extern.slf4j.Slf4j;
  * The authorization result is communicated via the {@code code} field in the
  * response body ({@code "00"}, {@code "51"}, or {@code "07"}).</p>
  *
+ * <p>Full API documentation is in {@code src/main/resources/static/openapi.yaml},
+ * served at {@code /openapi.yaml} and rendered by Swagger UI at
+ * {@code /swagger-ui.html}.</p>
+ *
  * @author Emerson Lima
  * @version 1.0
  * @since 1.0.0
@@ -44,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/transaction")
 @Validated
 @Slf4j
-@Tag(name = "Transaction", description = "MCC-based card transaction authorization endpoint")
 public class TransactionController {
 
     private final TransactionService service;
@@ -69,23 +64,6 @@ public class TransactionController {
      * @return {@link ResponseEntity} with {@code 200 OK} and the authorization result code
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(
-            summary = "Authorize a card transaction",
-            description = "Evaluates the transaction against the account balance using MCC category rules (L1), " +
-                    "CASH fallback (L2), merchant override (L3), and optimistic locking for concurrency (L4). " +
-                    "Always returns HTTP 200 OK — the result is in the 'code' field."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Authorization processed (check 'code' for result)",
-                    content = @Content(schema = @Schema(implementation = TransactionCodeModel.class),
-                            examples = {
-                                    @ExampleObject(name = "Approved", value = "{\"code\":\"00\"}"),
-                                    @ExampleObject(name = "Insufficient Funds", value = "{\"code\":\"51\"}"),
-                                    @ExampleObject(name = "Processing Error", value = "{\"code\":\"07\"}")
-                            })),
-            @ApiResponse(responseCode = "400", description = "Validation failed — missing or invalid request fields",
-                    content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ValidationErrorResponse.class)))
-    })
     public ResponseEntity<TransactionCodeModel> performTransaction(
             @Valid @RequestBody TransactionModel transactionModel) {
         log.info("POST /transaction - account={}, mcc={}, amount={}",

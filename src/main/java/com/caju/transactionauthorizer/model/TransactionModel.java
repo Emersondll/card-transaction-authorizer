@@ -1,7 +1,6 @@
 package com.caju.transactionauthorizer.model;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -15,15 +14,7 @@ import jakarta.validation.constraints.Positive;
  * <p>Deserialized from the JSON payload posted to {@code POST /transaction}.
  * All fields are validated via Bean Validation before the handler is invoked.</p>
  *
- * <p>Example payload:
- * <pre>{@code
- * {
- *   "account": "123",
- *   "totalAmount": 100.00,
- *   "mcc": "5811",
- *   "merchant": "PADARIA DO ZE  SAO PAULO BR"
- * }
- * }</pre>
+ * <p>Full API documentation is in {@code src/main/resources/static/openapi.yaml}.</p>
  *
  * @param account     the account identifier to debit (non-null, non-blank)
  * @param totalAmount the monetary amount to debit; must be positive (non-null)
@@ -58,15 +49,8 @@ public record TransactionModel(
      * Compact constructor — allows null values so that Bean Validation annotations
      * ({@code @NotBlank}, {@code @NotNull}, {@code @Positive}) can provide detailed
      * field-level error messages via {@code @Valid} on the controller.
-     *
-     * <p>If the constructor threw on null, Spring MVC would propagate an
-     * {@code HttpMessageNotReadableException} (500) before Bean Validation had a chance
-     * to produce structured 400 responses. The {@code @NotNull}/{@code @NotBlank}
-     * annotations on the fields handle null/blank detection at the HTTP boundary.</p>
      */
     public TransactionModel {
         // Null validation is handled by @NotNull/@NotBlank Bean Validation annotations.
-        // The compact constructor intentionally accepts nulls so the validation layer
-        // can produce field-level 400 responses instead of a 500 from a NullPointerException.
     }
 }

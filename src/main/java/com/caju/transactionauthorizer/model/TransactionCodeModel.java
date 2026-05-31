@@ -6,12 +6,14 @@ import java.util.Objects;
  * Immutable record representing the authorization response returned by the transaction endpoint.
  *
  * <p>The HTTP response is always {@code 200 OK}. The {@code code} field carries the
- * actual authorization result per the challenge specification:
+ * actual authorization result:
  * <ul>
  *   <li>{@code "00"} — transaction approved</li>
  *   <li>{@code "51"} — transaction rejected (insufficient funds)</li>
  *   <li>{@code "07"} — transaction rejected (processing error)</li>
  * </ul>
+ *
+ * <p>Full API documentation is in {@code src/main/resources/static/openapi.yaml}.</p>
  *
  * @param code the authorization response code (never null)
  *
