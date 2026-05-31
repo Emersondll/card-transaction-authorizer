@@ -240,7 +240,7 @@ curl -s -X POST http://localhost:8080/transaction \
 |-------|-----------|
 | **Nome** | Emerson Lima |
 | **GitHub** | [github.com/Emersondll](https://github.com/Emersondll) |
-| **LinkedIn** | [linkedin.com/in/stackdeveloper](https://www.linkedin.com/in/stackdeveloper/) |
+| **LinkedIn** | [linkedin.com/in/stackdeveloper](https://www.linkedin.com/in/emersondll/) |
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/stackdeveloper/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/emersondll/)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Emersondll)
